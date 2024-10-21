@@ -25,8 +25,13 @@ public class Program
             options.Configuration = builder.Configuration["RedisConnectionString"];
             options.InstanceName = "Redis";
         });
+        
         builder.Services.AddTransient<IRepository, Repository>();
+        builder.Services.AddTransient<IUserRepository, UserRepository>();
+        
         builder.Services.AddTransient<IBookService, BookService>();
+        builder.Services.AddTransient<IBookOrderService, BookOrderService>();
+        builder.Services.AddTransient<IUserService, UserService>();
         
         builder.Services.AddControllersWithViews();
         

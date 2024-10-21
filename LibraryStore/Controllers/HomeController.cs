@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Claims;
 using System.Text;
 using LibraryStore.Core.Interface.IServices;
 using Microsoft.AspNetCore.Mvc;
@@ -15,13 +16,17 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly IBookService _bookService;
+    private readonly IBookOrderService _bookOrderService;
+    private readonly IUserService _userService;
     private readonly IDistributedCache _cache;
 
-    public HomeController(ILogger<HomeController> logger, IBookService context, IDistributedCache cache)
+    public HomeController(ILogger<HomeController> logger, IBookService context, IDistributedCache cache , IBookOrderService bookOrderService, IUserService userService)
     {
         _logger = logger;
         _bookService = context;
         _cache = cache;
+        _bookOrderService = bookOrderService;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -29,10 +34,7 @@ public class HomeController : Controller
     public async Task<ViewResult> Index()
     {
        
-        if (User.IsInRole("Admin"))
-        {
-            ViewBag.IsAdmin = true;
-        }
+        ViewBag.IsAdmin = User.IsInRole("Admin");
             
         List<Book> bookList;
         string cacheKey = "bookList";
@@ -223,6 +225,64 @@ public class HomeController : Controller
 
         
         return View(book);
+    }
+    
+    [HttpPost]
+    [Authorize] 
+    public async Task<IActionResult> OrderBook(int bookId)
+    {
+        var email =  User.FindFirstValue(ClaimTypes.Email);
+        
+        var user = await _userService.FindUserByEmail(email);
+
+        if (user == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        var book = await _bookService.FindBookById(bookId);
+
+        if (book == null)
+        {
+            return NotFound();
+        }
+
+        var order = new BookOrder
+        {
+            BookId = book.Id,
+            UserId = user.Id,
+            OrderDate = DateTime.Now,
+            ReturnDate = DateTime.Now.AddDays(14) 
+        };
+        if (order == null)
+        {
+            return NotFound();
+        }
+        await _bookOrderService.AddBookOrder(order);
+        
+
+        TempData["Message"] = "Книга успішно замовлена!";
+
+        return RedirectToAction("Index");
+    }
+    
+    
+    public async Task<IActionResult> Orders()
+    {
+        
+        var userEmail = User.FindFirstValue(ClaimTypes.Email);
+
+        if (userEmail == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+
+        var orders = _bookOrderService.GetAllBookOrders(1, 10)
+            .Where(b => b.User.Email == userEmail)
+            .ToList();
+
+        return View(orders);
     }
     
     public IActionResult Privacy()

@@ -1,0 +1,31 @@
+﻿@model IEnumerable<BookOrder>
+
+
+@if (!Model.Any())
+{
+    <p>У вас немає жодного замовлення.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Назва книги</th>
+            <th>Автор</th>
+            <th>Дата замовлення</th>
+            <th>Дата повернення</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var order in Model)
+        {
+            <tr>
+                <td>@order.Book.Name</td>
+                <td>@order.Book.Author</td>
+                <td>@order.OrderDate.ToString("dd-MM-yyyy")</td>
+                <td>@order.ReturnDate.ToString("dd-MM-yyyy")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

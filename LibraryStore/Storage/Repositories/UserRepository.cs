@@ -1,13 +1,16 @@
-﻿using LibraryStore.Interface.IRepositories;
+﻿using LibraryStore.Core.Interface.IServices;
+using LibraryStore.Interface.IRepositories;
+using LibraryStore.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibraryStore.Storage;
 
-public class Repository: IRepository
+public class UserRepository : IUserRepository
 {
     private readonly ApplicationDbContext _context;
 
 
-    public Repository(ApplicationDbContext context)
+    public UserRepository(ApplicationDbContext context)
     {
         _context = context;
     }
@@ -43,5 +46,11 @@ public class Repository: IRepository
     public IQueryable<T> GetAll<T>() where T : class
     {
         return _context.Set<T>();
+    }
+    
+
+    public async Task<User> GetByEmail(string email)
+    {
+        return await _context.Set<User>().FirstOrDefaultAsync(u => u.Email == email);
     }
 }
