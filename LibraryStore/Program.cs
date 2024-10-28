@@ -15,7 +15,6 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
        
-        
         var keyVaultEndpoint = new Uri(builder.Configuration["VaultUri"]);
         builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
 
