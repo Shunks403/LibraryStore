@@ -37,29 +37,8 @@ public class HomeController : Controller
         ViewBag.IsAdmin = User.IsInRole("Admin");
             
         List<Book> bookList;
-        string cacheKey = "bookList";
-        string serializedBookList;
-        var booksFromCache = await _cache.GetAsync(cacheKey);
-
-
-
-        if (booksFromCache != null)
-        {
-            serializedBookList = Encoding.UTF8.GetString(booksFromCache);
-            bookList = JsonConvert.DeserializeObject<List<Book>>(serializedBookList);
-        }
-        else
-        {
-            bookList = _bookService.GetAllBooks(0, 10).ToList();
-
-            serializedBookList = JsonConvert.SerializeObject(bookList);
-            var cacheOptions = new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
-            };
-
-            await _cache.SetAsync(cacheKey, Encoding.UTF8.GetBytes(serializedBookList), cacheOptions);
-        }
+        
+       bookList = _bookService.GetAllBooks(0, 10).ToList();
 
         return View(bookList);
         
